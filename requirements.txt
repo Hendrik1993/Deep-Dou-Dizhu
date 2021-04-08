@@ -1,0 +1,2 @@
+rlcard~=0.2.8
+tensorflow==1.15
