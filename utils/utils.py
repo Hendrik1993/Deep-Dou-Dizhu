@@ -5,8 +5,8 @@ Different utility functions
 from utils.utils_data import action_json
 
 COLOURS = ['red', 'green', 'blue', 'yellow']
-VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Wild', 'Wild Draw Four', 'Skip', 'Draw Two',
-          'Reverse']
+VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse',
+          'Draw Two', 'Wild', 'Wild Draw Four']
 
 
 def get_card_names(hand_cards):
@@ -24,7 +24,6 @@ def get_card_names(hand_cards):
     for idx, row in enumerate(hand_cards):
         row_cards = [i for i, e in enumerate(row) if e == 1]
         if len(row_cards) > 0:
-            print(row_cards)
             for card in row_cards:
                 hand += COLOURS[idx] + "-" + VALUES[card] + " | "
 
