@@ -389,7 +389,7 @@ def tournament(env, num):
     counter = 0
     while counter < num:
         print("Evaluation Game: ", counter)
-        _, _payoffs = env.run(is_training=False)
+        _, _payoffs = env.run(is_training=True)
         if isinstance(_payoffs, list):
             for _p in _payoffs:
                 for i, _ in enumerate(payoffs):
