@@ -389,10 +389,11 @@ def tournament(env, num):
     payoffs = [0 for _ in range(env.player_num)]
     counter = 0
     while counter < num:
-        start_time = timeit.default_timer()
-        print("Evaluation Game: ", counter)
+        #start_time = timeit.default_timer()
+        if counter % 10 == 0:
+            print("Evaluation Game: ", counter)
         _, _payoffs = env.run(is_training=False)
-        print("Evaluation Game Time: ", timeit.default_timer() - start_time)
+        #print("Evaluation Game Time: ", timeit.default_timer() - start_time)
         if isinstance(_payoffs, list):
             for _p in _payoffs:
                 for i, _ in enumerate(payoffs):

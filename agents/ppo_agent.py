@@ -93,11 +93,12 @@ class PPOAgent(object):
         probs = self.actor_critic.predict("action", self.sess, states)
         legal_actions = [state['legal_actions'] for state in state]
         new_probs = remove_illegal(probs[0], legal_actions[0])
-        dist = tf.distributions.Categorical(probs=new_probs)
+        #dist = tf.distributions.Categorical(probs=new_probs)
 
         entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
 
-        return action, dist.log_prob(action).eval(), entropy  # dist.entropy().eval()
+        # return action, dist.log_prob(action).eval(), entropy  # dist.entropy().eval()
+        return action, np.log(new_probs[action]), entropy  # dist.entropy().eval()
 
     def eval_step(self, state, action=None):
 
@@ -114,9 +115,9 @@ class PPOAgent(object):
         # A = remove_illegal(A, state['legal_actions'])
         # action = np.random.choice(np.arange(len(A)), p=A)
 
-        entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
-        #entropy2 = - np.sum(np.log(new_probs)*new_probs)
-        return action, np.log(new_probs[action]), values, entropy #dist.log_prob(action).eval(), 0,0 #values,  0 #entropy  # dist.entropy().eval()
+        #entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
+        entropy = - np.sum(np.log(probs)*probs)
+        return action, np.log(new_probs[action]), values, entropy# entropy #dist.log_prob(action).eval(), 0,0 #values,  0 #entropy  # dist.entropy().eval()
 
     def predict(self, state):
         A = self.predict(state['obs'])
@@ -127,7 +128,7 @@ class PPOAgent(object):
     def train(self):
 
         #for t in range(self.training_steps):
-        print(f"Train Step: {self.train_t}")
+        #print(f"Train Step: {self.train_t}")
         state_batch, action_batch, reward_batch, log_prob_batch, value_batch, done_batch, advantage_batch, returns_batch = self.memory.sample()
         old_log_prob = log_prob_batch
         action, new_log_prob, entropy = self.step(state_batch, action_batch)
@@ -140,9 +141,9 @@ class PPOAgent(object):
         # print("New log prob:", new_log_prob)
         # print("Entropy:", entropy)
 
-        print("Updating...")
+        #print("Updating...")
         loss = self.actor_critic.update(self.sess, state_batch, ratio, advantage_batch, returns_batch, entropy)
-        print("Loss:", loss)
+        #print("Loss:", loss)
         self.train_t += 1
 
 

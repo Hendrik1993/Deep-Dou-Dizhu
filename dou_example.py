@@ -19,12 +19,12 @@ eval_env = rlcard.make('doudizhu', config={'seed': 0})
 
 # Set the iterations numbers and how frequently we evaluate the performance
 evaluate_every = 10
-evaluate_num = 10
+evaluate_num = 100
 episode_num = 100
 train_steps = 100
 
 # The intial memory size
-memory_init_size = 128 * 4
+memory_init_size = 256 * 4
 
 # Train the agent every X steps
 train_every = 1
@@ -45,9 +45,9 @@ with tf.Session() as sess:
                      action_num=env.action_num,
                      # replay_memory_init_size=memory_init_size,
                      # train_every=train_every,
-                     replay_memory_size=256,
+                     replay_memory_size=memory_init_size,
                      state_shape=env.state_shape,
-                     batch_size=128,
+                     batch_size=256,
                      mlp_layers=[512, 512])
 
     random_agent = RandomAgent(action_num=eval_env.action_num)
@@ -70,14 +70,14 @@ with tf.Session() as sess:
 
             # Generate data from the environment
             print("Collecting trajectories")
-            start_time = timeit.default_timer()
+            #start_time = timeit.default_timer()
             trajectories, _ = env.run(is_training=False)
-            print("Time Taken: ", timeit.default_timer() - start_time)
-            print(f"Number of steps in game: Agent: {len(trajectories[0])}, Rnd1: {len(trajectories[1])}, Rnd2: {len(trajectories[2])}")
-            print("-----------------------")
+            #print("Time Taken: ", timeit.default_timer() - start_time)
+            #print(f"Number of steps in game: Agent: {len(trajectories[0])}, Rnd1: {len(trajectories[1])}, Rnd2: {len(trajectories[2])}")
+            #print("-----------------------")
 
             # Feed transitions into agent memory, and train the agent
-            print("Feeding trajectories")
+            #print("Feeding trajectories")
             for ts in trajectories[0]:
                 agent.feed(ts)
 
@@ -85,8 +85,10 @@ with tf.Session() as sess:
         agent.memory.calculate_advantage_gae(last_value)
 
         print("Beginning training...")
+        #losses = []
         for i in range(train_steps):
             agent.train()
+
 
         # Evaluate the performance. Play with random agents.
         if episode % evaluate_every == 0:
