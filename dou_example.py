@@ -69,7 +69,7 @@ with tf.Session() as sess:
         while not agent.memory.is_full():
 
             # Generate data from the environment
-            print("Collecting trajectories")
+            #print("Collecting trajectories")
             #start_time = timeit.default_timer()
             trajectories, _ = env.run(is_training=False)
             #print("Time Taken: ", timeit.default_timer() - start_time)

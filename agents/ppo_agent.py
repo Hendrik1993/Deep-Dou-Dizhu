@@ -95,10 +95,10 @@ class PPOAgent(object):
         new_probs = remove_illegal(probs[0], legal_actions[0])
         #dist = tf.distributions.Categorical(probs=new_probs)
 
-        entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
-
+        #entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
+        entropy = - np.sum(np.log(probs)*probs)
         # return action, dist.log_prob(action).eval(), entropy  # dist.entropy().eval()
-        return action, np.log(new_probs[action]), entropy  # dist.entropy().eval()
+        return action, np.log(probs[0][action]), entropy  # dist.entropy().eval()
 
     def eval_step(self, state, action=None):
 
@@ -117,7 +117,7 @@ class PPOAgent(object):
 
         #entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
         entropy = - np.sum(np.log(probs)*probs)
-        return action, np.log(new_probs[action]), values, entropy# entropy #dist.log_prob(action).eval(), 0,0 #values,  0 #entropy  # dist.entropy().eval()
+        return action, np.log(probs[0][action]), values, entropy# entropy #dist.log_prob(action).eval(), 0,0 #values,  0 #entropy  # dist.entropy().eval()
 
     def predict(self, state):
         A = self.predict(state['obs'])
