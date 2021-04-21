@@ -2,10 +2,7 @@
 Implementation of our PPO Agent
 """
 import tensorflow as tf
-import rlcard
-from stable_baselines.common.env_checker import check_env
 from agents.dou_env import *
-from collections import namedtuple
 import random
 from dataclasses import dataclass, astuple
 
