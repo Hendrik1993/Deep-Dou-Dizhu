@@ -9,6 +9,7 @@ from rlcard.agents import DQNAgent
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed, tournament
 from rlcard.utils import Logger
+import timeit
 
 from agents.ppo_agent import PPOAgent
 
@@ -69,9 +70,11 @@ with tf.Session() as sess:
 
             # Generate data from the environment
             print("Collecting trajectories")
+            start_time = timeit.default_timer()
             trajectories, _ = env.run(is_training=False)
-
-            #print("LAST: ", trajectories[0][-1][0])
+            print("Time Taken: ", timeit.default_timer() - start_time)
+            print(f"Number of steps in game: Agent: {len(trajectories[0])}, Rnd1: {len(trajectories[1])}, Rnd2: {len(trajectories[2])}")
+            print("-----------------------")
 
             # Feed transitions into agent memory, and train the agent
             print("Feeding trajectories")

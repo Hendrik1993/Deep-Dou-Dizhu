@@ -7,8 +7,6 @@ import random
 from dataclasses import dataclass, astuple
 
 
-# Transition = namedtuple('Transition', ['state', 'action', 'reward', 'log_prob', 'value', 'done',
-#                                       'advantage'])
 
 @dataclass
 class Transition:
@@ -31,8 +29,6 @@ class PPOAgent(object):
                  sess,
                  scope,
                  discount_factor=0.99,
-                 epsilon_start=1.0,
-                 epsilon_end=0.1,
                  epsilon_decay_steps=20000,
                  replay_memory_size=20000,
                  batch_size=32,
@@ -46,7 +42,6 @@ class PPOAgent(object):
         self.use_raw = False
         self.sess = sess
         self.scope = scope
-        # self.replay_memory_init_size = replay_memory_init_size
         self.discount_factor = discount_factor
         self.epsilon_decay_steps = epsilon_decay_steps
         self.batch_size = batch_size
@@ -67,7 +62,10 @@ class PPOAgent(object):
         self.memory = Memory(replay_memory_size, batch_size)
 
     def feed(self, ts):
-        # TODO: Train agent after every trajectory (?)
+        """
+
+        :param ts: Tuple of transitions
+        """
         (state, action_info, reward, next_state, done) = tuple(ts)
 
         action, log_prob, value, entropy = action_info
@@ -106,13 +104,19 @@ class PPOAgent(object):
         probs = self.actor_critic.predict("action", self.sess, state)
         values = self.actor_critic.predict("values", self.sess, state)[0][0]
         new_probs = remove_illegal(probs[0], state['legal_actions'])
-        dist = tf.distributions.Categorical(probs=new_probs, allow_nan_stats=False)
-        if action is None:
-            action = dist.sample().eval()
+        #print(new_probs)
+        #dist = tf.distributions.Categorical(probs=new_probs, allow_nan_stats=False)
+        # if action is None:
+        #action = dist.sample()
+        action = np.random.choice(np.arange(len(new_probs)), p=new_probs)
+        #print("Action: ", action)
+        # A = np.ones(self.action_num, dtype=float)
+        # A = remove_illegal(A, state['legal_actions'])
+        # action = np.random.choice(np.arange(len(A)), p=A)
 
         entropy = -tf.reduce_sum(tf.math.multiply_no_nan(tf.math.log(new_probs), new_probs)).eval()
-
-        return action, dist.log_prob(action).eval(), values, entropy  # dist.entropy().eval()
+        #entropy2 = - np.sum(np.log(new_probs)*new_probs)
+        return action, np.log(new_probs[action]), values, entropy #dist.log_prob(action).eval(), 0,0 #values,  0 #entropy  # dist.entropy().eval()
 
     def predict(self, state):
         A = self.predict(state['obs'])
