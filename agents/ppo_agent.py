@@ -218,7 +218,7 @@ class Estimator:
 
         # Actor Loss
         surrogate_1 = self.ratio * self.advantage
-        surrogate_2 = tf.clip_by_value(self.ratio, 1 - self.clip_param, 1 + self.clip_param)
+        surrogate_2 = tf.clip_by_value(self.ratio, 1 - self.clip_param, 1 + self.clip_param) * self.advantage
         actor_loss = -tf.reduce_mean(tf.minimum(surrogate_1, surrogate_2), 0)
 
         # Critic Loss
