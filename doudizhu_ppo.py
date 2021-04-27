@@ -1,30 +1,34 @@
 ''' An example of learning a Deep-Q Agent on Dou Dizhu
 '''
-
+from comet_ml import Experiment
 import tensorflow as tf
 import os
 
 import rlcard
-from rlcard.agents import DQNAgent
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed, tournament
 from rlcard.utils import Logger
-import timeit
+
 
 from agents.ppo_agent import PPOAgent
 
+experiment = Experiment(
+        api_key="XgsIAmshUvQwGqaCZYeM3Cpkg",
+        project_name="doudizhu-ppo",
+        workspace="tmhatton",
+    )
 # Make environment
 env = rlcard.make('doudizhu', config={'seed': 0})
 eval_env = rlcard.make('doudizhu', config={'seed': 0})
 
 # Set the iterations numbers and how frequently we evaluate the performance
-evaluate_every = 10
+evaluate_every = 1
 evaluate_num = 100
 episode_num = 100
-train_steps = 100
+train_steps = 10
 
 # The intial memory size
-memory_init_size = 256 * 4
+memory_init_size = 8192
 
 # Train the agent every X steps
 train_every = 1
@@ -43,11 +47,9 @@ with tf.Session() as sess:
     agent = PPOAgent(sess,
                      scope='ppo',
                      action_num=env.action_num,
-                     # replay_memory_init_size=memory_init_size,
-                     # train_every=train_every,
                      replay_memory_size=memory_init_size,
                      state_shape=env.state_shape,
-                     batch_size=256,
+                     batch_size=64,
                      mlp_layers=[512, 512])
 
     random_agent = RandomAgent(action_num=eval_env.action_num)
@@ -59,6 +61,7 @@ with tf.Session() as sess:
 
     # Init a Logger to plot the learning curve
     logger = Logger(log_dir)
+    game_count = 0
 
     for episode in range(episode_num):
 
@@ -69,31 +72,33 @@ with tf.Session() as sess:
         while not agent.memory.is_full():
 
             # Generate data from the environment
-            #print("Collecting trajectories")
-            #start_time = timeit.default_timer()
             trajectories, _ = env.run(is_training=False)
-            #print("Time Taken: ", timeit.default_timer() - start_time)
-            #print(f"Number of steps in game: Agent: {len(trajectories[0])}, Rnd1: {len(trajectories[1])}, Rnd2: {len(trajectories[2])}")
-            #print("-----------------------")
+            game_count += 1
+            experiment.set_step(episode)
 
-            # Feed transitions into agent memory, and train the agent
-            #print("Feeding trajectories")
+            # Feed transitions into agent memory
             for ts in trajectories[0]:
                 agent.feed(ts)
 
-        last_value = agent.actor_critic.predict('values', sess, trajectories[0][-1][0])[0][0]
-        agent.memory.calculate_advantage_gae(last_value)
+        # When memory full, calculate advantages. Therefore, add last value estimate
+        last_value = agent.actor_critic.predict('values', sess, trajectories[0][-1][-2])[0][0]
+        agent.memory.calculate_advantage_gae(last_value, trajectories[0][-1][-1])
 
         print("Beginning training...")
-        #losses = []
         for i in range(train_steps):
-            agent.train()
+            loss, critic_loss, actor_loss = agent.train()
+            experiment.log_metric("loss", loss, step=game_count)
+            experiment.log_metric("critic_loss", critic_loss, step=game_count)
+            experiment.log_metric("actor_loss", actor_loss, step=game_count)
+
 
 
         # Evaluate the performance. Play with random agents.
         if episode % evaluate_every == 0:
             print("Evaluating...")
-            logger.log_performance(env.timestep, tournament(eval_env, evaluate_num)[0])
+            eval_env.set_agents([agent, random_agent, random_agent])
+            logger.log_performance(game_count, tournament(eval_env, evaluate_num)[0])
+
 
     # Close files in the logger
     logger.close_files()
