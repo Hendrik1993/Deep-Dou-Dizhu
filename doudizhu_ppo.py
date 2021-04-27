@@ -2,7 +2,6 @@
 Training and Evaluating a PPO Agent on Dou Dizhu
 """
 
-from comet_ml import Experiment
 import tensorflow as tf
 import os
 import rlcard
