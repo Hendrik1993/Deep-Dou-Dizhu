@@ -1,22 +1,17 @@
-''' An example of learning a Deep-Q Agent on Dou Dizhu
-'''
+"""
+Training and Evaluating a PPO Agent on Dou Dizhu
+"""
+
 from comet_ml import Experiment
 import tensorflow as tf
 import os
-
 import rlcard
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed, tournament
 from rlcard.utils import Logger
-
-
 from agents.ppo_agent import PPOAgent
 
-experiment = Experiment(
-        api_key="XgsIAmshUvQwGqaCZYeM3Cpkg",
-        project_name="doudizhu-ppo",
-        workspace="tmhatton",
-    )
+
 # Make environment
 env = rlcard.make('doudizhu', config={'seed': 0})
 eval_env = rlcard.make('doudizhu', config={'seed': 0})
@@ -74,7 +69,6 @@ with tf.Session() as sess:
             # Generate data from the environment
             trajectories, _ = env.run(is_training=False)
             game_count += 1
-            experiment.set_step(episode)
 
             # Feed transitions into agent memory
             for ts in trajectories[0]:
@@ -87,9 +81,6 @@ with tf.Session() as sess:
         print("Beginning training...")
         for i in range(train_steps):
             loss, critic_loss, actor_loss = agent.train()
-            experiment.log_metric("loss", loss, step=game_count)
-            experiment.log_metric("critic_loss", critic_loss, step=game_count)
-            experiment.log_metric("actor_loss", actor_loss, step=game_count)
 
 
 
