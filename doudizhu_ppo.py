@@ -10,7 +10,6 @@ from rlcard.utils import set_global_seed, tournament
 from rlcard.utils import Logger
 from agents.ppo_agent import PPOAgent
 
-
 # Make environment
 env = rlcard.make('doudizhu', config={'seed': 0})
 eval_env = rlcard.make('doudizhu', config={'seed': 0})
@@ -81,14 +80,11 @@ with tf.Session() as sess:
         for i in range(train_steps):
             loss, critic_loss, actor_loss = agent.train()
 
-
-
         # Evaluate the performance. Play with random agents.
         if episode % evaluate_every == 0:
             print("Evaluating...")
             eval_env.set_agents([agent, random_agent, random_agent])
             logger.log_performance(game_count, tournament(eval_env, evaluate_num)[0])
-
 
     # Close files in the logger
     logger.close_files()
