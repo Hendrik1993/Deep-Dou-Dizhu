@@ -1,2 +1,7 @@
 rlcard~=0.2.8
-tensorflow==1.15
+tensorflow~=1.14.0
+numpy~=1.19.5
+scipy~=1.6.2
+termcolor~=1.1.0
+pillow~=7.2.0
+future~=0.18.2

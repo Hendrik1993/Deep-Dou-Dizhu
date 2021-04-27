@@ -9,7 +9,6 @@ from scipy.stats import entropy
 import numpy as np
 
 
-
 @dataclass
 class Transition:
     state: np.ndarray
@@ -90,7 +89,6 @@ class PPOAgent(object):
         states = [state['obs'] for state in state]
         probs = self.actor_critic.predict("action", self.sess, states)
         legal_actions = [state['legal_actions'] for state in state]
-        new_probs = remove_illegal(probs[0], legal_actions[0])
         entropy_ = entropy(probs, axis=-1)
         return action, np.log(probs[0][action]), entropy_
 
@@ -116,7 +114,6 @@ class PPOAgent(object):
         return action
 
     def train(self):
-
         loss = 0
         critic_loss = 0
         actor_loss = 0
@@ -128,7 +125,8 @@ class PPOAgent(object):
             action, new_log_prob, entropy = self.step(state_batch, action_batch)
             ratio = np.exp(new_log_prob - old_log_prob)
 
-            loss, critic_loss, actor_loss = self.actor_critic.update(self.sess, state_batch, ratio, advantage_batch, returns_batch, entropy)
+            loss, critic_loss, actor_loss = self.actor_critic.update(self.sess, state_batch, ratio, advantage_batch,
+                                                                     returns_batch, entropy)
             self.train_t += 1
 
         return loss, critic_loss, actor_loss
@@ -179,7 +177,7 @@ class Estimator:
         self.advantage = tf.placeholder(shape=[None], dtype=tf.float32, name="advantage")
 
         # Batch Normalization
-        #X = tf.layers.batch_normalization(self.X_pl, training=self.is_train)
+        # X = tf.layers.batch_normalization(self.X_pl, training=self.is_train)
 
         # Fully connected layers
         fc = tf.contrib.layers.flatten(self.X_pl)
@@ -199,8 +197,8 @@ class Estimator:
         self.actor_loss = -tf.reduce_mean(tf.minimum(surrogate_1, surrogate_2), 0)
 
         # Critic Loss
-        self.critic_loss = 0.5 * tf.losses.mean_squared_error(self.values_target_pl,tf.squeeze(self.value_predictions))
-        self.entropy_loss = tf.reduce_mean(self.entropy,0)
+        self.critic_loss = 0.5 * tf.losses.mean_squared_error(self.values_target_pl, tf.squeeze(self.value_predictions))
+        self.entropy_loss = tf.reduce_mean(self.entropy, 0)
         self.loss = self.actor_loss + self.critic_loss - self.entropy_beta * self.entropy_loss
 
     def predict(self, pred, sess, state):
@@ -253,13 +251,12 @@ class Memory(object):
     Memory buffer to store transitions, calculate advantages and enabling to sample from buffer.
     """
 
-
     def __init__(self, memory_size, batch_size):
-        ''' Initialize
+        """ Initialize
         Args:
             memory_size (int): the size of the memroy buffer
             batch_size (int): batch size for minibatch sampling
-        '''
+        """
 
         self.memory_size = memory_size
         self.batch_size = batch_size
@@ -344,7 +341,7 @@ class Memory(object):
                 next_value = last_value
             else:
                 next_non_terminal = 1 - dones[i]
-                next_value = values[i+1]
+                next_value = values[i + 1]
 
             delta = rewards[i] + gamma * next_value * next_non_terminal - values[i]
             gae = delta + gamma * gae_lambda * next_non_terminal * gae
@@ -383,10 +380,7 @@ class Memory(object):
         idxs = np.arange(self.memory_size)
         np.random.shuffle(idxs)
 
-        return [idxs[start:start+self.batch_size] for start in np.arange(0, self.memory_size, self.batch_size)]
+        return [idxs[start:start + self.batch_size] for start in np.arange(0, self.memory_size, self.batch_size)]
 
     def is_full(self):
         return len(self.memory) >= self.memory_size
-
-
-
